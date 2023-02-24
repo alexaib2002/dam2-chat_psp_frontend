@@ -17,7 +17,10 @@ public class MainApplication extends Application {
     public static final int port = 2453;
     private Socket socket;
     private String nick;
-    DataOutputStream out;
+    private DataOutputStream outputStream;
+    private DataInputStream inputStream;
+    private ChatReceiver chatReceiver;
+    private MainController mainController;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -26,6 +29,9 @@ public class MainApplication extends Application {
         // Base inits, needed for networking and GUI
         initMainWindow(stage);
         startServerConnection();
+        mainController.updateChat(inputStream.readUTF()); // Receive chat history
+        chatReceiver = new ChatReceiver(inputStream, mainController::appendMsgChat);
+        chatReceiver.start();
     }
 
     @Override
@@ -49,18 +55,18 @@ public class MainApplication extends Application {
         stage.setTitle("ChatPSP");
         stage.setScene(scene);
         stage.show();
-        ((MainController) fxmlLoader.getController()).setMsgWriter(this::sendComposedMsg);
+        mainController =  fxmlLoader.getController();
+        mainController.setMsgSocketSender(this::sendComposedMsg);
     }
 
     private void startServerConnection() {
-        System.out.println("Trying to connect");
+        System.out.println("Trying to init server connection");
         try {
             socket = new Socket(host, port);
-            out = new DataOutputStream(socket.getOutputStream());
-            sendMsg("[nick]" + nick);
-            DataInputStream inputStream = new DataInputStream(socket.getInputStream()); // Receive data from server
-            String chatHistory = inputStream.readUTF();
-            System.out.println(chatHistory);
+            // Open data streams
+            outputStream = new DataOutputStream(socket.getOutputStream());
+            inputStream = new DataInputStream(socket.getInputStream());
+            sendMsg("[nick]" + nick); // Greet the server
         } catch (IOException e) {
             Notifier.createAlert(e.getMessage(), e.toString(), Alert.AlertType.ERROR).showAndWait();
             System.exit(5);
@@ -74,7 +80,7 @@ public class MainApplication extends Application {
 
     private void sendMsg(String msg) {
         try {
-            out.writeUTF(msg);
+            outputStream.writeUTF(msg);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
