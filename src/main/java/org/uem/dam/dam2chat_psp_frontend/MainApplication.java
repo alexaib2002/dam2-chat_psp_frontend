@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
+import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 import org.uem.dam.dam2chat_psp_frontend.utils.Notifier;
 
@@ -24,14 +25,21 @@ public class MainApplication extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        // FIXME prompt username
-        nick = "Username1";
+        nick = promptNick();
         // Base inits, needed for networking and GUI
         initMainWindow(stage);
         startServerConnection();
         mainController.updateChat(inputStream.readUTF()); // Receive chat history
         chatReceiver = new ChatReceiver(inputStream, mainController::appendMsgChat);
         chatReceiver.start();
+    }
+
+    private String promptNick() {
+        TextInputDialog usernameAlert = new TextInputDialog();
+        usernameAlert.setHeaderText("Your username");
+        usernameAlert.setContentText("Please insert your username:");
+        usernameAlert.showAndWait();
+        return usernameAlert.getEditor().getText();
     }
 
     @Override
@@ -74,7 +82,7 @@ public class MainApplication extends Application {
     }
 
     private void sendComposedMsg(String msg) {
-        String send = String.format("::%s:: %s", nick, msg);
+        String send = String.format("%s: %s", nick, msg);
         sendMsg(send);
     }
 
@@ -82,7 +90,8 @@ public class MainApplication extends Application {
         try {
             outputStream.writeUTF(msg);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Notifier.createAlert(e.getMessage(), e.toString(), Alert.AlertType.ERROR).showAndWait();
+            System.exit(5);
         }
     }
 }
