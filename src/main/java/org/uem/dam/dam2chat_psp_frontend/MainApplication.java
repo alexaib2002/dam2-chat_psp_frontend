@@ -20,7 +20,6 @@ public class MainApplication extends Application {
     private String nick;
     private DataOutputStream outputStream;
     private DataInputStream inputStream;
-    private ChatReceiver chatReceiver;
     private MainController mainController;
 
     @Override
@@ -30,8 +29,13 @@ public class MainApplication extends Application {
         initMainWindow(stage);
         startServerConnection();
         mainController.updateChat(inputStream.readUTF()); // Receive chat history
-        chatReceiver = new ChatReceiver(inputStream, mainController::appendMsgChat);
-        chatReceiver.start();
+        ChatTask task = new ChatTask(inputStream, mainController::appendMsgChat);
+        task.setOnFailed(e -> {
+            Notifier.createAlert("Unexpected error",
+                    "Abrupt end of client thread", Alert.AlertType.ERROR).showAndWait();
+            System.exit(5);
+        });
+        new Thread(task).start();
     }
 
     private String promptNick() {
@@ -68,7 +72,7 @@ public class MainApplication extends Application {
     }
 
     private void startServerConnection() {
-        System.out.println("Trying to init server connection");
+        System.out.println("Trying to init server connection...");
         try {
             socket = new Socket(host, port);
             // Open data streams
@@ -79,6 +83,7 @@ public class MainApplication extends Application {
             Notifier.createAlert(e.getMessage(), e.toString(), Alert.AlertType.ERROR).showAndWait();
             System.exit(5);
         }
+        System.out.println("Connection successfully established");
     }
 
     private void sendComposedMsg(String msg) {
