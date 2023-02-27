@@ -17,6 +17,7 @@ public class MainController {
     @FXML
     protected void onMsgSendButtonPressed() {
         msgSocketSender.accept(msgInputTxt.getText());
+        msgInputTxt.clear();
     }
 
     public void setMsgSocketSender(Consumer<String> msgSocketSender) {

@@ -66,6 +66,7 @@ public class MainApplication extends Application {
         Scene scene = new Scene(fxmlLoader.load(), 320, 240);
         stage.setTitle("ChatPSP");
         stage.setScene(scene);
+        stage.resizableProperty().set(false);
         stage.show();
         mainController =  fxmlLoader.getController();
         mainController.setMsgSocketSender(this::sendComposedMsg);
