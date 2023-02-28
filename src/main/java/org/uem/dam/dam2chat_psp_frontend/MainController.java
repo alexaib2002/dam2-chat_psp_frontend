@@ -3,6 +3,7 @@ package org.uem.dam.dam2chat_psp_frontend;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.text.Text;
 
 import java.util.function.Consumer;
 
@@ -12,6 +13,7 @@ public class MainController {
     public TextField msgInputTxt;
     @FXML
     public TextArea chatTextArea;
+    public Text nickTxt;
     private Consumer<String> msgSocketSender;
 
     @FXML

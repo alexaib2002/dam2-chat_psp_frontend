@@ -70,6 +70,7 @@ public class MainApplication extends Application {
         stage.show();
         mainController =  fxmlLoader.getController();
         mainController.setMsgSocketSender(this::sendComposedMsg);
+        mainController.nickTxt.setText(nick);
     }
 
     private void startServerConnection() {
